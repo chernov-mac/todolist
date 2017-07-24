@@ -37,7 +37,6 @@ let desk = new TodoListBuilder(boardElement, {
     builderButtonClasses: 'btn btn-add btn-icon blue',
     todoListOuterClasses: '.col.xxs-24.md-12.lg-8',
     builderButtonText: '<span class="text">Add</span><span class="icon"><span class="fa fa-plus"></span></span>',
-    moveAnimation: false,
     todoList: {
         titleText: 'New List'
     },
