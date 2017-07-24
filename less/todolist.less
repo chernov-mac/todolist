@@ -1,0 +1,123 @@
+// main: style.less
+
+.todolist {
+	position: relative;
+	display: inline-block;
+	width: 100%;
+
+	&--tools {
+		position: absolute;
+		top: 0;
+		right: 0;
+		display: flex;
+
+		.tool {
+			flex: 0 auto;
+		}
+
+		.mover.tool {
+			display: flex;
+		}
+	}
+	&--list {
+		display: block;
+		background: #fff;
+
+		.todolist-item {
+			display: flex;
+			align-items: center;
+
+			&--complete,
+			&--add-icon {
+				flex: 0 auto;
+				order: 1;
+				display: block;
+				margin: 0 15px 0 0;
+			}
+			&--text {
+				flex: 1 0px;
+				order: 2;
+				position: relative;
+				z-index: 1;
+
+				&:hover {
+					cursor: text;
+				}
+			}
+			&--remove {
+				flex: 0 auto;
+				order: 3;
+				display: block;
+				margin: 0 0 0 15px;
+				text-align: center;
+				cursor: pointer;
+			}
+
+			&.add-item {
+				.todolist-item {
+					&--add-icon {
+						text-align: center;
+					}
+					&--text {
+						width: 100%;
+
+						.adding-box {
+							position: absolute;
+							top: 0;
+							right: 0;
+							bottom: 0;
+							left: 0;
+						}
+						.adding-box {
+							z-index: 2;
+						}
+					}
+
+				}
+			}
+
+			&.active {
+				.todolist-item {
+					&--text {
+						.value {
+							visibility: hidden;
+						}
+						.edit-value {
+							visibility: visible;
+						}
+					}
+				}
+			}
+
+			&.single-line:not(.active) {
+				.todolist-item {
+					&--text {
+						overflow: hidden;
+						white-space: nowrap;
+						text-overflow: ellipsis;
+					}
+				}
+			}
+
+			&.complete:not(.active) {
+				.todolist-item {
+					&--text {
+						text-decoration: line-through;
+					}
+				}
+			}
+		}
+	}
+	&--add-form {
+		display: flex;
+
+		.form-control {
+			flex: 1 auto;
+			margin-bottom: 20px;
+		}
+		.btn {
+			flex: 0 auto;
+			margin-left: 15px;
+		}
+	}
+}
