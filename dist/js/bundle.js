@@ -758,20 +758,6 @@ class TodoListBuilder {
 			});
 		}
 
-		// build from sources if set
-		if (this.options.sources.length > 0) {
-			this.options.sources.forEach(source => {
-				this.getSourceData(source).then((sourceData) => {
-					this.data = this.data.concat(sourceData);
-					// add todolists from source when response come
-					sourceData.forEach(todoList => {
-						this.buildList(todoList);
-					});
-					this.updateStorage();
-				});
-			});
-		}
-
 		// build empty list if no data set
 		if (this.data.length === 0 && this.options.sources.length === 0) {
 			this.buildList();
@@ -785,25 +771,17 @@ class TodoListBuilder {
 
 		parsedLists.forEach(list => {
 			let listData = {
-				order: list[0],
-				title: list[1],
+				title: list[0],
 				data: []
 			};
-			list[2].forEach(item => {
+			list[1].forEach(item => {
 				let itemData = {
-					order: item[0],
-					text: item[1],
-					complete: item[2]
+					text: item[0],
+					complete: item[1]
 				};
 				listData.data.push(itemData);
 			});
 			this.data.push(listData);
-		});
-	}
-
-	getSourceData(url) {
-		return fetch(url).then(function(result){
-			return result.json();
 		});
 	}
 
@@ -827,7 +805,7 @@ class TodoListBuilder {
 
 		newList.item = new __WEBPACK_IMPORTED_MODULE_0__todoList_js__["a" /* TodoList */](outerDeepest || this.board, todoList.data, newListOptions);
 		newList.outer = outer || newList.item.listElement;
-		// newList.order = this.lists.length; // starts from 0
+
 		this.lists.push(newList);
 	}
 
@@ -918,24 +896,26 @@ class TodoListBuilder {
 
 	updateStorage() {
 		let newData = [];
-		this.lists.forEach((list, listIndex) => {
+		// [...[list.title, ...[item.text, item.complete]]]
+		this.lists.forEach(list => {
 			list = list.item;
 			let items = [];
 
-			// 0: order, 1: title, 2: [...items]
-			let listData = [listIndex, list.title, items];
+			// 0: title, 1: [...items]
+			let listData = [list.title, items];
 
-			list.itemsArray.forEach((item, itemIndex) => {
-				// 0: order, 1: text, 2: complete
-				let itemData = [itemIndex, item.text, item.complete];
+			list.itemsArray.forEach(item => {
+				// 0: text, 1: complete
+				let itemData = [item.text, item.complete];
 				items.push(itemData);
 			});
 
 			newData.push(listData);
 		});
 		newData = JSON.stringify(newData);
+		
 		localStorage.setItem('todolist', newData);
-		console.log('Storage is updated...');
+		console.log('Storage is updated.');
 	}
 
 	// Events
