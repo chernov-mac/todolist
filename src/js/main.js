@@ -1,10 +1,10 @@
 /*jslint esversion: 6 */
 /*jslint node: true */
-/*global document, alert, fetch, Autocomplete, Chips, TodoList, countriesData, todoData*/
+/*global document, todoData*/
 
 'use strict';
 import { TodoList } from "./todoList.js";
-import { TodoListBuilder } from "./todoListBuilder.js";
+import { TodoBuilder } from "./todoListBuilder.js";
 
 // TODO: add JS Doc
 
@@ -13,34 +13,35 @@ import { TodoListBuilder } from "./todoListBuilder.js";
 var todos = document.querySelector('.presentation#todolist');
 
 getToDoData('todo').then((data) => {
-    let defaultList = new TodoList(todos.querySelector('#todolist-default'), data, {
-        customAdding: document.querySelector('.custom-form'),
-        onAddTodo: onAddTodo,
-        tools: false
-    });
+    // let defaultList = new TodoList(todos.querySelector('#todolist-default'), data, {
+    //     customAdding: document.querySelector('.custom-form'),
+    //     onAddTodo: onAddTodo,
+    //     tools: false,
+    //     titleText: 'As in task'
+    // });
     let customList = new TodoList(todos.querySelector('#todolist-custom'), data, {
-        titleText: 'Summer education'
+        titleText: 'Default'
     });
     let disabledList = new TodoList(todos.querySelector('#todolist-disabled'), data, {
-        readonly: true
+        readonly: true,
+        titleText: 'Readonly'
     });
 });
 
-/* TODOLIST BUILDER */
+/* TODOBUILDER */
 
 let boardElement = document.querySelector('#todo-board');
-let desk = new TodoListBuilder(boardElement, {
+let desk = new TodoBuilder(boardElement, {
     boardClasses: 'row-24',
     builderFormOuterClasses: 'row-24>.col.xxs-24.md-12.lg-8.offset-md-6.offset-lg-8',
     builderFormClasses: 'custom-form',
     builderInputOuterClasses: 'form-control',
     builderButtonClasses: 'btn btn-add btn-icon blue',
-    todoListOuterClasses: '.col.xxs-24.md-12.lg-8',
+    listOuterClasses: '.col.xxs-24.md-12.lg-8',
     builderButtonText: '<span class="text">Add</span><span class="icon"><span class="fa fa-plus"></span></span>',
-    todoList: {
+    list: {
         titleText: 'New List'
-    },
-    // sources: ['/data/todos.json']
+    }
 });
 
 /* FUNCTIONS */

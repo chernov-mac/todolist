@@ -1,5 +1,5 @@
 /*
-*    JavaScript TodoListBuilder
+*    JavaScript TodoBuilder
 *    Author: Vladimir Chernov
 *    For KeepSolid Summer Internship 2017
 */
@@ -7,35 +7,31 @@
 
 import { TodoList, TodoListDefaults } from "./todoList.js";
 
-export const TodoListBuilderDefaults = {
+export const TodoBuilderDefaults = {
 	enableAdding: true,
 	boardClasses: '',
-	todoListOuterClasses: 'todolist-outer',
+	listOuterClasses: 'todo-box-outer',
 	builderFormOuterClasses: 'builder-form-outer',
 	builderFormClasses: 'builder-form',
 	builderInputOuterClasses: 'form-control',
-	builderButtonText: 'Add TodoList',
-	builderPlaceholder: 'New TodoList',
+	builderButtonText: 'Add',
+	builderPlaceholder: 'New Todo List',
 	builderButtonClasses: 'btn btn-builder', // string of classes, e.g. '.my.outer>.nested'
 	moveAnimation: true,
-	sources: [], // array of URL strings
-	todoList: { // extends todoList default options
+	list: { // extends TodoListDefaults
 		tools: true,
 		moving: true
 	}
 };
 
-export class TodoListBuilder {
+export class TodoBuilder {
 
 	constructor(builderParentElement, options) {
 
-		this.options = Object.assign({}, TodoListBuilderDefaults, options);
-		this.options.todoList = Object.assign(
-			{},
-			TodoListBuilderDefaults.todoList,
-			options.todoList);
+		this.options = Object.assign({}, TodoBuilderDefaults, options);
+		this.options.list = Object.assign({}, TodoBuilderDefaults.list, options.list);
 
-		this.lists = [];
+		this.listsArray = [];
 		this.data = [];
 
 		this.loadTemplate(builderParentElement);
@@ -46,14 +42,14 @@ export class TodoListBuilder {
 
 	loadTemplate(builderParentElement) {
 		let template = `
-		<div class="todolist-builder">
-			<div class="todolist-board ${this.options.boardClasses}"></div>
+		<div class="todo-builder">
+			<div class="todo-board ${this.options.boardClasses}"></div>
 		</div>
 		`;
 		builderParentElement.innerHTML = template;
-		this.board = builderParentElement.querySelector('.todolist-board');
+		this.board = builderParentElement.querySelector('.todo-board');
 
-		this.todoListOuterTemplate = this.createOuter(this.options.todoListOuterClasses);
+		this.listOuterTemplate = this.createOuter(this.options.listOuterClasses);
 
 		this.options.enableAdding && this.createBuilderForm();
 	}
@@ -134,14 +130,14 @@ export class TodoListBuilder {
 
 		// build from local if exists
 		if (this.data.length > 0) {
-			this.data.forEach(todoList => {
-				this.buildList(todoList);
+			this.data.forEach(listData => {
+				this.build(listData);
 			});
 		}
 
 		// build empty list if no data set
 		if (this.data.length === 0 && this.options.sources.length === 0) {
-			this.buildList();
+			this.build();
 		}
 
 		this.updateStorage();
@@ -153,52 +149,48 @@ export class TodoListBuilder {
 		parsedLists.forEach(list => {
 			let listData = {
 				title: list[0],
-				data: []
+				itemsArray: []
 			};
 			list[1].forEach(item => {
 				let itemData = {
 					text: item[0],
 					complete: item[1]
 				};
-				listData.data.push(itemData);
+				listData.itemsArray.push(itemData);
 			});
 			this.data.push(listData);
 		});
 	}
 
-	buildList(todoList) {
-		todoList = todoList || {};
-		let newList = {};
+	build(listData) {
+		listData = listData || {};
 
 		let outer, outerDeepest = null;
 
-		if (this.todoListOuterTemplate) {
-			outer = this.todoListOuterTemplate.cloneNode(true);
+		if (this.options.listOuterClasses) {
+			outer = this.listOuterTemplate.cloneNode(true);
 			outerDeepest = outer.querySelector('.outer-deepest') || outer;
 			outerDeepest.classList.remove('outer-deepest');
 			this.board.appendChild(outer);
 		}
 
-		let newListOptions = {
-			titleText: todoList.title || this.options.todoList.titleText
-		};
-		newListOptions = Object.assign({}, this.options.todoList, newListOptions);
+		let list = new TodoList(outerDeepest || this.board, listData.itemsArray, this.options.list);
 
-		newList.item = new TodoList(outerDeepest || this.board, todoList.data, newListOptions);
-		newList.outer = outer || newList.item.listElement;
+		if (listData.title) { list.title = listData.title; }
+		list.outer = outer;
 
-		this.lists.push(newList);
+		this.listsArray.push(list);
 	}
 
 	isEdge(i, direction) {
 		if ((i == 0 && direction == 'left') ||
-			(i == this.lists.length - 1 && direction == 'right')) {
+			(i == this.listsArray.length - 1 && direction == 'right')) {
 			return true;
 		}
 	}
 
 	moveList(i, step, direction) {
-		let list = this.lists[i];
+		let list = this.listsArray[i];
 		let j = 0;
 
 		switch(direction) {
@@ -211,7 +203,7 @@ export class TodoListBuilder {
 			default: return;
 		}
 
-		let slist = this.lists[j];
+		let slist = this.listsArray[j];
 
 		if (j > i) {
 			this.board.insertBefore(slist.outer, list.outer);
@@ -219,18 +211,18 @@ export class TodoListBuilder {
 			this.board.insertBefore(list.outer, slist.outer);
 		}
 
-		this.lists.splice(i, 1);
-		this.lists.splice(j, 0, list);
+		this.listsArray.splice(i, 1);
+		this.listsArray.splice(j, 0, list);
 	}
 
 	swap(mainIndex, secondaryIndex) {
 		if (mainIndex == secondaryIndex) return;
 
-		if (secondaryIndex > this.lists.length - 1) secondaryIndex = 0;
-		if (secondaryIndex < 0) secondaryIndex = this.lists.length - 1;
+		if (secondaryIndex > this.listsArray.length - 1) secondaryIndex = 0;
+		if (secondaryIndex < 0) secondaryIndex = this.listsArray.length - 1;
 
-		let over = this.lists[mainIndex].outer;
-		let under = this.lists[secondaryIndex].outer;
+		let over = this.listsArray[mainIndex].outer;
+		let under = this.listsArray[secondaryIndex].outer;
 
 		// create clones
 		over.clone = over.cloneNode(true);
@@ -278,8 +270,7 @@ export class TodoListBuilder {
 	updateStorage() {
 		let newData = [];
 		// [...[list.title, ...[item.text, item.complete]]]
-		this.lists.forEach(list => {
-			list = list.item;
+		this.listsArray.forEach(list => {
 			let items = [];
 
 			// 0: title, 1: [...items]
@@ -294,7 +285,7 @@ export class TodoListBuilder {
 			newData.push(listData);
 		});
 		newData = JSON.stringify(newData);
-		
+
 		localStorage.setItem('todolist', newData);
 		console.log('Storage is updated.');
 	}
@@ -307,22 +298,22 @@ export class TodoListBuilder {
 			this.builder.form.addEventListener('submit', this.onCreateNew.bind(this));
 		}
 
-		this.board.addEventListener('todoList.setTitle', this.onTodoListSetTitle.bind(this));
-		this.board.addEventListener('todoList.addItem',  this.onTodoListAddItem.bind(this));
-		this.board.addEventListener('todoList.remove', 	 this.onTodoListRemove.bind(this));
-		this.board.addEventListener('todoList.clear', 	 this.onTodoListClear.bind(this));
-		this.board.addEventListener('todoList.move', 	 this.onTodoListMove.bind(this));
+		this.board.addEventListener('todo.list.setTitle', this.onListSetTitle.bind(this));
+		this.board.addEventListener('todo.list.addItem',  this.onListAddItem.bind(this));
+		this.board.addEventListener('todo.list.remove',	  this.onListRemove.bind(this));
+		this.board.addEventListener('todo.list.clear', 	  this.onListClear.bind(this));
+		this.board.addEventListener('todo.list.move', 	  this.onListMove.bind(this));
 
-		this.board.addEventListener('todoListItem.setStatus', this.onItemSetStatus.bind(this));
-		this.board.addEventListener('todoListItem.remove', 	  this.onItemRemove.bind(this));
-		this.board.addEventListener('todoListItem.edit', 	  this.onItemEdit.bind(this));
+		this.board.addEventListener('todo.item.setStatus', this.onItemSetStatus.bind(this));
+		this.board.addEventListener('todo.item.remove',    this.onItemRemove.bind(this));
+		this.board.addEventListener('todo.item.edit', 	   this.onItemEdit.bind(this));
 
 	}
 
 	onCreateNew(event) {
 		event.preventDefault();
 
-		this.buildList({
+		this.build({
 			title: this.builder.input && this.builder.input.value
 		});
 		this.builder.input.value = '';
@@ -330,38 +321,38 @@ export class TodoListBuilder {
 		this.updateStorage();
 	}
 
-	onTodoListClear(event) {
+	onListClear(event) {
 		// ...some actions for particular event
 		this.updateStorage();
 	}
 
-	onTodoListSetTitle(event) {
+	onListSetTitle(event) {
 		// ...some actions for particular event
 		this.updateStorage();
 	}
 
-	onTodoListAddItem(event) {
+	onListAddItem(event) {
 		// ...some actions for particular event
 		this.updateStorage();
 	}
 
-	onTodoListRemove(event) {
-		for (var i = 0; i < this.lists.length; i++) {
-			if (this.lists[i].item == event.detail.todoList) { break; }
+	onListRemove(event) {
+		for (var i = 0; i < this.listsArray.length; i++) {
+			if (this.listsArray[i] == event.detail.list) { break; }
 		}
-		this.lists[i].outer.remove();
-		this.lists.splice(i, 1);
+		this.listsArray[i].outer.remove();
+		this.listsArray.splice(i, 1);
 
 		this.updateStorage();
 	}
 
-	onTodoListMove(event) {
+	onListMove(event) {
 		let movingList = null;
 		let direction = event.detail.direction;
 
-		for (var i = 0; i < this.lists.length; i++) {
-			if (this.lists[i].item == event.detail.todoList) {
-				movingList = this.lists[i];
+		for (var i = 0; i < this.listsArray.length; i++) {
+			if (this.listsArray[i] == event.detail.list) {
+				movingList = this.listsArray[i];
 				break;
 			}
 		}
