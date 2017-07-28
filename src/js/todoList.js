@@ -3,14 +3,13 @@
 *    Author: Vladimir Chernov
 *    For KeepSolid Summer Internship 2017
 */
-/*jslint esversion: 6 */
 
 import { TodoItem, TodoItemDefaults } from "./todoItem.js";
 
 export const TodoListDefaults = {
 	// adding
 	adding: true,
-	iconText: '<span class="fa fa-plus-circle"></span>',
+	iconText: '<span class="fa fa-plus-circle">+</span>',
 	placeholder: 'New todo:',
 	// title
 	titleText: 'Todo List',
@@ -19,10 +18,10 @@ export const TodoListDefaults = {
 	// tools
 	tools: true,
 	moving: false,
-	moveLeftToolText: '<span class="fa fa-chevron-circle-left"></span>',
-	moveRightToolText: '<span class="fa fa-chevron-circle-right"></span>',
-	removeToolText: '<span class="fa fa-trash"></span>',
-	clearToolText: '<span class="fa fa-times-circle"></span>',
+	moveLeftToolText: '<span class="fa fa-chevron-circle-left">ml</span>',
+	moveRightToolText: '<span class="fa fa-chevron-circle-right">mr</span>',
+	removeToolText: '<span class="fa fa-trash">r</span>',
+	clearToolText: '<span class="fa fa-times-circle">c</span>',
 	// other
 	readonly: false,
 	item: {} // extends TodoItemDefaults
@@ -207,7 +206,7 @@ export class TodoList {
 		let value = this.addBox.innerHTML;
 
 		if (value) {
-			item = new TodoItem(value, false, this.options.item, this.list);
+			let item = new TodoItem(value, false, this.options.item, this.list);
 			this.add(item);
 			this.addBox.innerHTML = '';
 			this.addElement && this.addElement.classList.remove('active');

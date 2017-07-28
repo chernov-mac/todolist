@@ -3,7 +3,6 @@
 *    Author: Vladimir Chernov
 *    For KeepSolid Summer Internship 2017
 */
-/*jslint esversion: 6 */
 
 import { TodoList, TodoListDefaults } from "./todoList.js";
 

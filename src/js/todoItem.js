@@ -3,13 +3,12 @@
 *    Author: Vladimir Chernov
 *    For KeepSolid Summer Internship 2017
 */
-/*jslint esversion: 6 */
 
 export const TodoItemDefaults = {
 	editable: true,
 	removable: true,
 	singleLine: true,
-	removeBtnText: '<span class="fa fa-times-circle"></span>'
+	removeBtnText: '<span class="fa fa-times-circle">&times;</span>'
 };
 
 export class TodoItem {
