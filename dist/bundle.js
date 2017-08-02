@@ -72,11 +72,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__js_todoListBuilder_js__ = __webpack_require__(3);
 
 
-if ('ServiceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => {
-        // ok!
-    }, (e) => {
-        // oops!
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./js/sw.js').then(function (reg) {
+        console.log('Registration succeeded. Scope is ' + reg.scope);
+    }).catch(function (error) {
+        console.log('Registration failed with ' + error);
     });
 }
 
@@ -503,24 +503,7 @@ const TodoListDefaults = {
 /* unused harmony export TodoListDefaults */
 
 
-const INNER_TEMPLATE_PREVIEW = `
-<div class="overflow-wrapper">
-	<div class="todo-header">
-		<h5 class="todo-title"></h5>
-	</div>
-	<div class="todo-body">
-		<ul class="todo-list"></ul>
-	</div>
-	<div class="todo-footer">
-		<div class="actions">
-			<button class="btn btn-flat action clear"></button>
-			<button class="btn btn-flat text-red action remove"></button>
-		</div>
-	</div>
-</div>
-`;
-
-const INNER_TEMPLATE_DIALOG = `
+const INNER_TEMPLATE = `
 <div class="overflow-wrapper">
 	<div class="todo-header">
 		<h5 class="todo-title" contenteditable="true"></h5>
@@ -602,7 +585,7 @@ class TodoList {
 	loadTemplate(parentElement) {
 		this.box = document.createElement('div');
 		this.box.classList.add('todobox');
-		this.box.innerHTML = INNER_TEMPLATE_DIALOG;
+		this.box.innerHTML = INNER_TEMPLATE;
 
 		// set links to box control elements
 		this.boxBody      = this.box.querySelector('.todo-body');

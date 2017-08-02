@@ -21,24 +21,7 @@ export const TodoListDefaults = {
 	item: {} // extends TodoItemDefaults
 };
 
-const INNER_TEMPLATE_PREVIEW = `
-<div class="overflow-wrapper">
-	<div class="todo-header">
-		<h5 class="todo-title"></h5>
-	</div>
-	<div class="todo-body">
-		<ul class="todo-list"></ul>
-	</div>
-	<div class="todo-footer">
-		<div class="actions">
-			<button class="btn btn-flat action clear"></button>
-			<button class="btn btn-flat text-red action remove"></button>
-		</div>
-	</div>
-</div>
-`;
-
-const INNER_TEMPLATE_DIALOG = `
+const INNER_TEMPLATE = `
 <div class="overflow-wrapper">
 	<div class="todo-header">
 		<h5 class="todo-title" contenteditable="true"></h5>
@@ -120,7 +103,7 @@ export class TodoList {
 	loadTemplate(parentElement) {
 		this.box = document.createElement('div');
 		this.box.classList.add('todobox');
-		this.box.innerHTML = INNER_TEMPLATE_DIALOG;
+		this.box.innerHTML = INNER_TEMPLATE;
 
 		// set links to box control elements
 		this.boxBody      = this.box.querySelector('.todo-body');
