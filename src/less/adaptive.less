@@ -1,1 +1,99 @@
-// main: style.less
+// material 1440
+@media (max-width: 1439px) {
+    .content-wrapper {
+        width: 900px !important;
+    }
+}
+
+// material 1280
+@media (max-width: 1279px) {
+
+}
+
+// grid 1200
+@media (max-width: 1199px) {
+    .content-wrapper {
+        width: 760px !important;
+    }
+}
+
+// material 1024
+@media (max-width: 1023px) {
+    .content {
+        padding-top: 56px !important;
+    }
+    .primary-toolbar {
+        height: 56px !important;
+
+        .title {
+            line-height: 56px;
+        }
+    }
+    .content-wrapper {
+        width: 600px !important;
+    }
+}
+
+// grid 900
+@media (max-width: 899px) {
+    .content-wrapper {
+        width: 360px !important;
+    }
+}
+
+// material 840
+@media (max-width: 839px) {
+    .content-wrapper {
+        width: 360px !important;
+    }
+}
+
+// material 600 and grid 600
+@media (max-width: 599px) {
+    .content {
+        padding-top: 48px !important;
+    }
+    .primary-toolbar {
+        height: 48px !important;
+
+        .title {
+            line-height: 48px;
+        }
+    }
+    .todo-builder {
+        .btn.build {
+            position: fixed !important;
+            z-index: 99;
+            top: auto !important;
+            left: auto !important;
+            bottom: 20px;
+            right: 20px;
+            transform: none !important;
+        }
+    }
+}
+
+// material 400
+@media (max-width: 399px) {
+    
+    .todo-builder {
+        padding: 0 10px !important;
+
+        .content-wrapper {
+            width: 100% !important;
+
+            .todo-board {
+                margin-left: -10px !important;
+                margin-right: -10px !important;
+
+                .col {
+                    padding-left: 10px !important;
+                    padding-right: 10px !important;
+                }
+                .todobox {
+                    margin-bottom: 10px !important;
+                }
+            }
+        }
+    }
+}

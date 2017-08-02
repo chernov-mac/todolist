@@ -9,11 +9,11 @@ const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 const htmlWebpackPlugin = new HtmlWebpackPlugin({
 	title: 'TodoList | Keepsolid',
-	hash: true,
+	hash: false,
 	template: PATHS.src + '/index.html'
 });
 const extractLess = new ExtractTextPlugin({
-	filename: "[name].[contenthash].css",
+	filename: "style.css",
 	disable: process.env.NODE_ENV === "development"
 });
 

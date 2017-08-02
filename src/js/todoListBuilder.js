@@ -10,17 +10,8 @@ export const TodoBuilderDefaults = {
 	enableAdding: true,
 	boardClasses: '',
 	listOuterClasses: 'todo-box-outer',
-	builderFormOuterClasses: 'builder-form-outer',
-	builderFormClasses: 'builder-form',
-	builderInputOuterClasses: 'form-control',
-	builderButtonText: 'Add',
-	builderPlaceholder: 'New Todo List',
-	builderButtonClasses: 'btn btn-builder', // string of classes, e.g. '.my.outer>.nested'
-	moveAnimation: true,
-	list: { // extends TodoListDefaults
-		tools: true,
-		moving: true
-	}
+	builderButtonText: '<i class="material-icons">add</i>',
+	list: {} // extends TodoListDefaults
 };
 
 export class TodoBuilder {
@@ -42,51 +33,18 @@ export class TodoBuilder {
 	loadTemplate(builderParentElement) {
 		let template = `
 		<div class="todo-builder">
-			<div class="todo-board ${this.options.boardClasses}"></div>
+			<div class="todo-builder--bg"></div>
+			<div class="content-wrapper">
+				<div class="todo-board ${this.options.boardClasses}"></div>
+				<button class="btn btn-fab blue action build">${this.options.builderButtonText}</button>
+			</div>
 		</div>
 		`;
 		builderParentElement.innerHTML = template;
 		this.board = builderParentElement.querySelector('.todo-board');
+		this.builderBtn = builderParentElement.querySelector('button.action.build');
 
 		this.listOuterTemplate = this.createOuter(this.options.listOuterClasses);
-
-		this.options.enableAdding && this.createBuilderForm();
-	}
-
-	createBuilderForm() {
-		this.builder = {};
-
-		this.builder.form = document.createElement('form');
-		this.builder.form.className = this.options.builderFormClasses;
-
-		this.builder.input = document.createElement('input');
-		this.builder.input.type = 'text';
-		this.builder.input.placeholder = this.options.builderPlaceholder;
-
-		this.builder.button = document.createElement('button');
-		this.builder.button.type = 'submit';
-		this.builder.button.className = this.options.builderButtonClasses;
-		this.builder.button.innerHTML = this.options.builderButtonText;
-
-		let builderOuter = this.createOuter(this.options.builderFormOuterClasses) || this.builder.form;
-		let builderOuterDeepest = builderOuter.querySelector('.outer-deepest') || builderOuter;
-
-		let inputOuter = this.createOuter(this.options.builderInputOuterClasses) || this.builder.input;
-		let inputOuterDeepest = inputOuter.querySelector('.outer-deepest') || inputOuter;
-
-		if (builderOuter != this.builder.form) {
-			builderOuterDeepest.appendChild(this.builder.form);
-		}
-		if (builderOuter != this.builder.form) {
-			inputOuterDeepest.appendChild(this.builder.input);
-		}
-
-		builderOuterDeepest.classList.remove('outer-deepest');
-		inputOuterDeepest.classList.remove('outer-deepest');
-
-		this.builder.form.appendChild(inputOuter);
-		this.builder.form.appendChild(this.builder.button);
-		this.board.parentElement.insertBefore(builderOuter, this.board);
 	}
 
 	createOuter(outerClassesString) {
@@ -230,7 +188,6 @@ export class TodoBuilder {
 		over.clone.addEventListener('transitionend', this.onSwapped.bind(this, over, under));
 
 		// set original positions and sizes
-		this.board.classList.add('scene');
 		over.clone.classList.add('clone');
 		under.clone.classList.add('clone');
 		over.clone.style.top = over.offsetTop + 'px';
@@ -293,30 +250,22 @@ export class TodoBuilder {
 
 	initEvents() {
 
-		if (this.builder.form) {
-			this.builder.form.addEventListener('submit', this.onCreateNew.bind(this));
-		}
+		this.builderBtn.addEventListener('click', this.onCreateNew.bind(this));
 
-		this.board.addEventListener('todo.list.setTitle', this.onListSetTitle.bind(this));
-		this.board.addEventListener('todo.list.addItem',  this.onListAddItem.bind(this));
-		this.board.addEventListener('todo.list.remove',	  this.onListRemove.bind(this));
-		this.board.addEventListener('todo.list.clear', 	  this.onListClear.bind(this));
-		this.board.addEventListener('todo.list.move', 	  this.onListMove.bind(this));
+		document.body.addEventListener('todo.list.setTitle',  this.onListSetTitle.bind(this));
+		document.body.addEventListener('todo.list.addItem',   this.onListAddItem.bind(this));
+		document.body.addEventListener('todo.list.remove',	  this.onListRemove.bind(this));
+		document.body.addEventListener('todo.list.clear', 	  this.onListClear.bind(this));
+		document.body.addEventListener('todo.list.move', 	  this.onListMove.bind(this));
 
-		this.board.addEventListener('todo.item.setStatus', this.onItemSetStatus.bind(this));
-		this.board.addEventListener('todo.item.remove',    this.onItemRemove.bind(this));
-		this.board.addEventListener('todo.item.edit', 	   this.onItemEdit.bind(this));
+		document.body.addEventListener('todo.item.setStatus', this.onItemSetStatus.bind(this));
+		document.body.addEventListener('todo.item.remove',    this.onItemRemove.bind(this));
+		document.body.addEventListener('todo.item.edit', 	  this.onItemEdit.bind(this));
 
 	}
 
 	onCreateNew(event) {
-		event.preventDefault();
-
-		this.build({
-			title: this.builder.input && this.builder.input.value
-		});
-		this.builder.input.value = '';
-
+		this.build();
 		this.updateStorage();
 	}
 

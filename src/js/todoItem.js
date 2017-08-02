@@ -8,7 +8,7 @@ export const TodoItemDefaults = {
 	editable: true,
 	removable: true,
 	singleLine: true,
-	removeBtnText: '<span class="fa fa-times-circle">&times;</span>'
+	removeBtnText: '<i class="material-icons">highlight_off</i>'
 };
 
 export class TodoItem {
@@ -68,8 +68,9 @@ export class TodoItem {
 		this.element.classList.add('todo-item');
 
 		let inner = `
-			<label class="todo-item--complete">
+			<label class="todo-item--complete todo-item--icon">
 				<input type="checkbox" tabindex="-1">
+				<i class="material-icons"></i>
 			</label>
 			<div class="todo-item--text" contenteditable="${this.options.editable}"></div>
 		`;
@@ -117,7 +118,14 @@ export class TodoItem {
 		});
 		this.element.dispatchEvent(itemRemove);
 
-		this.element.remove();
+		let parent = this.element.parentElement
+		this.element.remove();this.element.parentElement
+
+		var itemRemoved = new CustomEvent("todo.item.removed", {
+			bubbles: true,
+			detail: { item: this }
+		});
+		parent.dispatchEvent(itemRemoved);
 	}
 
 	onTextBoxFocus(event) {

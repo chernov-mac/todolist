@@ -72,21 +72,24 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__js_todoListBuilder_js__ = __webpack_require__(3);
 
 
+if ('ServiceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => {
+        // ok!
+    }, (e) => {
+        // oops!
+    });
+}
+
 const grid = __webpack_require__(1);
 const style = __webpack_require__(2);
 
 
-// TODO: add JS Doc
+// TODO: add JSDoc
 
 let boardElement = document.querySelector('#todo-board');
 let desk = new __WEBPACK_IMPORTED_MODULE_0__js_todoListBuilder_js__["a" /* TodoBuilder */](boardElement, {
     boardClasses: 'row-24',
-    builderFormOuterClasses: 'row-24>.col.xxs-24.md-12.lg-8.offset-md-6.offset-lg-8',
-    builderFormClasses: 'custom-form',
-    builderInputOuterClasses: 'form-control',
-    builderButtonClasses: 'btn btn-add btn-icon blue',
     listOuterClasses: '.col.xxs-24.md-12.lg-8',
-    builderButtonText: '<span class="text">Add</span><span class="icon"><span class="fa fa-plus">+</span></span>',
     list: {
         titleText: 'New List'
     }
@@ -123,17 +126,8 @@ const TodoBuilderDefaults = {
 	enableAdding: true,
 	boardClasses: '',
 	listOuterClasses: 'todo-box-outer',
-	builderFormOuterClasses: 'builder-form-outer',
-	builderFormClasses: 'builder-form',
-	builderInputOuterClasses: 'form-control',
-	builderButtonText: 'Add',
-	builderPlaceholder: 'New Todo List',
-	builderButtonClasses: 'btn btn-builder', // string of classes, e.g. '.my.outer>.nested'
-	moveAnimation: true,
-	list: { // extends TodoListDefaults
-		tools: true,
-		moving: true
-	}
+	builderButtonText: '<i class="material-icons">add</i>',
+	list: {} // extends TodoListDefaults
 };
 /* unused harmony export TodoBuilderDefaults */
 
@@ -157,51 +151,18 @@ class TodoBuilder {
 	loadTemplate(builderParentElement) {
 		let template = `
 		<div class="todo-builder">
-			<div class="todo-board ${this.options.boardClasses}"></div>
+			<div class="todo-builder--bg"></div>
+			<div class="content-wrapper">
+				<div class="todo-board ${this.options.boardClasses}"></div>
+				<button class="btn btn-fab blue action build">${this.options.builderButtonText}</button>
+			</div>
 		</div>
 		`;
 		builderParentElement.innerHTML = template;
 		this.board = builderParentElement.querySelector('.todo-board');
+		this.builderBtn = builderParentElement.querySelector('button.action.build');
 
 		this.listOuterTemplate = this.createOuter(this.options.listOuterClasses);
-
-		this.options.enableAdding && this.createBuilderForm();
-	}
-
-	createBuilderForm() {
-		this.builder = {};
-
-		this.builder.form = document.createElement('form');
-		this.builder.form.className = this.options.builderFormClasses;
-
-		this.builder.input = document.createElement('input');
-		this.builder.input.type = 'text';
-		this.builder.input.placeholder = this.options.builderPlaceholder;
-
-		this.builder.button = document.createElement('button');
-		this.builder.button.type = 'submit';
-		this.builder.button.className = this.options.builderButtonClasses;
-		this.builder.button.innerHTML = this.options.builderButtonText;
-
-		let builderOuter = this.createOuter(this.options.builderFormOuterClasses) || this.builder.form;
-		let builderOuterDeepest = builderOuter.querySelector('.outer-deepest') || builderOuter;
-
-		let inputOuter = this.createOuter(this.options.builderInputOuterClasses) || this.builder.input;
-		let inputOuterDeepest = inputOuter.querySelector('.outer-deepest') || inputOuter;
-
-		if (builderOuter != this.builder.form) {
-			builderOuterDeepest.appendChild(this.builder.form);
-		}
-		if (builderOuter != this.builder.form) {
-			inputOuterDeepest.appendChild(this.builder.input);
-		}
-
-		builderOuterDeepest.classList.remove('outer-deepest');
-		inputOuterDeepest.classList.remove('outer-deepest');
-
-		this.builder.form.appendChild(inputOuter);
-		this.builder.form.appendChild(this.builder.button);
-		this.board.parentElement.insertBefore(builderOuter, this.board);
 	}
 
 	createOuter(outerClassesString) {
@@ -345,7 +306,6 @@ class TodoBuilder {
 		over.clone.addEventListener('transitionend', this.onSwapped.bind(this, over, under));
 
 		// set original positions and sizes
-		this.board.classList.add('scene');
 		over.clone.classList.add('clone');
 		under.clone.classList.add('clone');
 		over.clone.style.top = over.offsetTop + 'px';
@@ -408,30 +368,22 @@ class TodoBuilder {
 
 	initEvents() {
 
-		if (this.builder.form) {
-			this.builder.form.addEventListener('submit', this.onCreateNew.bind(this));
-		}
+		this.builderBtn.addEventListener('click', this.onCreateNew.bind(this));
 
-		this.board.addEventListener('todo.list.setTitle', this.onListSetTitle.bind(this));
-		this.board.addEventListener('todo.list.addItem',  this.onListAddItem.bind(this));
-		this.board.addEventListener('todo.list.remove',	  this.onListRemove.bind(this));
-		this.board.addEventListener('todo.list.clear', 	  this.onListClear.bind(this));
-		this.board.addEventListener('todo.list.move', 	  this.onListMove.bind(this));
+		document.body.addEventListener('todo.list.setTitle',  this.onListSetTitle.bind(this));
+		document.body.addEventListener('todo.list.addItem',   this.onListAddItem.bind(this));
+		document.body.addEventListener('todo.list.remove',	  this.onListRemove.bind(this));
+		document.body.addEventListener('todo.list.clear', 	  this.onListClear.bind(this));
+		document.body.addEventListener('todo.list.move', 	  this.onListMove.bind(this));
 
-		this.board.addEventListener('todo.item.setStatus', this.onItemSetStatus.bind(this));
-		this.board.addEventListener('todo.item.remove',    this.onItemRemove.bind(this));
-		this.board.addEventListener('todo.item.edit', 	   this.onItemEdit.bind(this));
+		document.body.addEventListener('todo.item.setStatus', this.onItemSetStatus.bind(this));
+		document.body.addEventListener('todo.item.remove',    this.onItemRemove.bind(this));
+		document.body.addEventListener('todo.item.edit', 	  this.onItemEdit.bind(this));
 
 	}
 
 	onCreateNew(event) {
-		event.preventDefault();
-
-		this.build({
-			title: this.builder.input && this.builder.input.value
-		});
-		this.builder.input.value = '';
-
+		this.build();
 		this.updateStorage();
 	}
 
@@ -535,21 +487,15 @@ class TodoBuilder {
 
 
 const TodoListDefaults = {
+	previewMaxCount: 3,
 	// adding
-	adding: true,
-	iconText: '<span class="fa fa-plus-circle">+</span>',
+	addIconText: '<i class="material-icons">add_circle</i>',
 	placeholder: 'New todo:',
 	// title
-	titleText: 'Todo List',
-	titleBox: 'h5',
-	titleEditable: true,
+	titleText: 'Title',
 	// tools
-	tools: true,
-	moving: false,
-	moveLeftToolText: '<span class="fa fa-chevron-circle-left">ml</span>',
-	moveRightToolText: '<span class="fa fa-chevron-circle-right">mr</span>',
-	removeToolText: '<span class="fa fa-trash">r</span>',
-	clearToolText: '<span class="fa fa-times-circle">c</span>',
+	removeToolText: 'Remove',
+	clearToolText: 'Clear',
 	// other
 	readonly: false,
 	item: {} // extends TodoItemDefaults
@@ -557,16 +503,51 @@ const TodoListDefaults = {
 /* unused harmony export TodoListDefaults */
 
 
-const TEMPLATE = `
-<div class="todo-box">
-	<h5 class="todo-title"></h5>
-	<ul class="todo-list"></ul>
+const INNER_TEMPLATE_PREVIEW = `
+<div class="overflow-wrapper">
+	<div class="todo-header">
+		<h5 class="todo-title"></h5>
+	</div>
+	<div class="todo-body">
+		<ul class="todo-list"></ul>
+	</div>
+	<div class="todo-footer">
+		<div class="actions">
+			<button class="btn btn-flat action clear"></button>
+			<button class="btn btn-flat text-red action remove"></button>
+		</div>
+	</div>
+</div>
+`;
+
+const INNER_TEMPLATE_DIALOG = `
+<div class="overflow-wrapper">
+	<div class="todo-header">
+		<h5 class="todo-title" contenteditable="true"></h5>
+	</div>
+	<div class="todo-body">
+		<ul class="todo-list">
+			<li class="todo-item add editable">
+				<div class="todo-item--icon add"></div>
+				<div class="todo-item--text">
+					<div class="placeholder"></div>
+					<div class="add-box" contenteditable="true"></div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	<div class="todo-footer">
+		<div class="actions">
+			<button class="btn btn-flat action clear"></button>
+			<button class="btn btn-flat text-red action remove"></button>
+		</div>
+	</div>
 </div>
 `;
 
 class TodoList {
 
-	constructor(listParentElement, data, options) {
+	constructor(parentElement, data, options) {
 		this.options = Object.assign({}, TodoListDefaults, options);
 		/*
 		* Second assign is present because Object.assign makes this.options.item
@@ -575,9 +556,6 @@ class TodoList {
 		this.options.item = Object.assign({}, TodoListDefaults.item, options.item);
 
 		if (this.options.readonly) {
-			this.options.adding = false;
-			this.options.tools = false;
-			this.options.titleEditable = false;
 			this.options.item.editable = false;
 			this.options.item.removable = false;
 		}
@@ -585,7 +563,7 @@ class TodoList {
 		this.data = data || [];
 		this.itemsArray = []; // contains objects of TodoItem
 
-		this.loadTemplate(listParentElement);
+		this.loadTemplate(parentElement);
 		this.setList(this.data);
 		this.initEvents();
 	}
@@ -596,123 +574,284 @@ class TodoList {
 
 	set title(value) {
 		this._title = value;
-		if (this.titleBox != document.activeElement) {
-			this.titleBox.innerHTML = value;
+		if (this.titleElement != document.activeElement) {
+			this.titleElement.innerHTML = value;
 		}
 
 		let setTitle = new CustomEvent("todo.list.setTitle", {
 			bubbles: true,
 			detail: { list: this }
 		});
-		this.list.dispatchEvent(setTitle);
+		this.box.dispatchEvent(setTitle);
 	}
 
-	loadTemplate(listParentElement) {
-		listParentElement.innerHTML = TEMPLATE;
+	get active() {
+		return this._active;
+	}
 
-		this.todoBox = listParentElement.querySelector('.todo-box');
-		this.list = this.todoBox.querySelector('.todo-list');
+	set active(value) {
+		// if (!value) {
+		// 	let date = new Date();
+		// 	date = Date.parse(date);
+		// 	console.log('active set false transitionend: ' + date);
+		// }
+		
+		this._active = value;
+	}
 
-		this.titleBox = listParentElement.querySelector('.todo-title');
-		this.titleBox.setAttribute('contenteditable', this.options.titleEditable);
+	loadTemplate(parentElement) {
+		this.box = document.createElement('div');
+		this.box.classList.add('todobox');
+		this.box.innerHTML = INNER_TEMPLATE_DIALOG;
+
+		// set links to box control elements
+		this.boxBody      = this.box.querySelector('.todo-body');
+		this.list         = this.box.querySelector('.todo-list');
+		this.titleElement = this.box.querySelector('.todo-title');
+		this.clearTool    = this.box.querySelector('.todo-footer .actions .clear');
+		this.removeTool   = this.box.querySelector('.todo-footer .actions .remove');
+		this.addItem      = this.box.querySelector('.todo-item.add');
+		this.addInput     = this.addItem.querySelector('.add-box');
+
+		// set text
 		this.title = this.options.titleText;
 
-		this.options.tools && this.createTools();
-		this.options.adding && this.createAddItem();
-	}
+		this.clearTool.innerHTML = this.options.clearToolText;
+		this.removeTool.innerHTML = this.options.removeToolText;
+		this.addItem.querySelector('.placeholder').innerHTML = this.options.placeholder;
+		this.addItem.querySelector('.todo-item--icon').innerHTML = this.options.addIconText;
 
-	createTools() {
-		this.tools = document.createElement('div');
-		this.tools.classList.add('todo-tools');
+		// load generated boxes
+		this.parent = parentElement;
+		this.parent.innerHTML = '';
+		this.parent.appendChild(this.box);
 
-		let inner = `
-			<button class="tool clear">${this.options.clearToolText}</button>
-			<button class="tool remove">${this.options.removeToolText}</button>
-		`;
-		this.tools.innerHTML = inner;
-		this.list.parentElement.insertBefore(this.tools, this.list);
-
-		this.clearTool = this.tools.querySelector('.tool.clear');
-		this.removeTool = this.tools.querySelector('.tool.remove');
-
-		this.options.moving && this.createMover();
-	}
-
-	createMover() {
-		this.moveTool = {};
-
-		this.mover = document.createElement('div');
-		this.mover.classList.add('tool', 'mover');
-
-		let inner = `
-			<button class="tool move left">${this.options.moveLeftToolText}</button>
-			<button class="tool move right">${this.options.moveRightToolText}</button>
-		`;
-		this.mover.innerHTML = inner;
-		this.tools.insertBefore(this.mover, this.tools.querySelector('.tool.clear'));
-
-		this.moveTool.left = this.mover.querySelector('.tool.left');
-		this.moveTool.right = this.mover.querySelector('.tool.right');
-	};
-
-	createAddItem() {
-		let inner = `
-			<div class="todo-add--icon add">${this.options.iconText}</div>
-			<div class="todo-add--text single-line">
-	            <div class="placeholder">${this.options.placeholder}</div>
-	            <div class="add-box" contenteditable="true"></div>
-	        </div>
-		`;
-
-		this.addElement = document.createElement('div');
-		this.addElement.classList.add('todo-add', 'editable');
-
-		this.addElement.innerHTML = inner;
-		this.addBox = this.addElement.querySelector('.add-box');
-
-		this.todoBox.appendChild(this.addElement);
+		this.active = false;
 	}
 
 	setList(data) {
 		data = data || [];
 		this.itemsArray = [];
 		this.list.innerHTML = '';
+		this.list.appendChild(this.addItem);
 
 		data.forEach((todo) => {
 			let item = new __WEBPACK_IMPORTED_MODULE_0__todoItem_js__["a" /* TodoItem */](todo.text, todo.complete, this.options.item);
 			this.add(item);
 		});
+		this.hideOutOfMaxItems();
 	}
 
 	add(item) {
-		this.list.appendChild(item.element);
+		if (this.itemsArray.length == this.options.previewMaxCount) {
+			this.createItemMore();
+		}
 
 		this.itemsArray.push(item);
+		this.list.insertBefore(item.element, this.addItem);
+
+		if (this.active) {
+			this.fixBoxBodyHeight();
+		} else {
+			this.hideOutOfMaxItems();
+		}
 
 		let addItem = new CustomEvent("todo.list.addItem", {
 			bubbles: true,
 			detail: { list: this }
 		});
-		this.list.dispatchEvent(addItem);
+		this.box.dispatchEvent(addItem);
 	}
 
-	initEvents() {
-		this.list.addEventListener('todo.item.remove', this.onRemoveTodo.bind(this));
-		this.titleBox.addEventListener('input', this.onTitleInput.bind(this));
+	createItemMore() {
+		let moreLine = document.createElement('div');
+		moreLine.classList.add('todo-item', 'more');
+		moreLine.innerHTML = '<div class="todo-item--text">...</div>';
 
-		if (this.options.adding) {
-			this.addElement.addEventListener('click', ()=>{ this.addBox.focus(); });
-			this.addBox.addEventListener('focus', this.onAddBoxFocus.bind(this));
-			this.addBox.addEventListener('blur', this.onAddBoxBlur.bind(this));
-			this.addBox.addEventListener('input', this.onAddTodo.bind(this));
+		this.boxBody.appendChild(moreLine);
+	}
+
+	showDialog() {
+		this.createDialog();
+		this.placeDialogOverBox(this.box);
+
+		// this moves .todobox from it's parent to .dialog
+		this.dialog.appendChild(this.box);
+
+		// load clone into parent to save size
+		this.clone = this.box.cloneNode(true);
+		this.parent.appendChild(this.clone);
+
+		let pos = {
+			top: window.pageYOffset + document.documentElement.clientHeight / 2 + 'px',
+			left: '50%'
 		}
-		if (this.options.tools) {
-			this.clearTool.addEventListener('click', this.onListClear.bind(this));
-			this.removeTool.addEventListener('click', this.onListRemove.bind(this));
+		let size = {
+			width: '600px',
+			height: 'auto',
+			bodyHeight: this.list.offsetHeight + 'px'
 		}
-		if (this.options.moving) {
-			this.moveTool.left.addEventListener('click', this.onListMove.bind(this, 'left'));
-			this.moveTool.right.addEventListener('click', this.onListMove.bind(this, 'right'));
+
+		this.showHiddenItems();
+		this.animateDialog('show', pos, size);
+
+		this.active = true;
+	}
+
+	hideDialog() {
+		this.dialog.addEventListener('transitionend', this.destroyDialog.bind(this));
+		this.hideOutOfMaxItems();
+		this.placeDialogOverBox(this.clone);
+	}
+
+	createDialog() {
+		this.dialog = document.createElement('div');
+		this.dialog.classList.add('dialog');
+		this.dialog.innerHTML = '';
+		document.body.appendChild(this.dialog);
+	}
+
+	placeDialogOverBox(target) {
+		let targetPos = target.getBoundingClientRect();
+		let targetCenter = {
+			top: (targetPos.top + pageYOffset) + target.offsetHeight / 2 + 'px',
+			left: (targetPos.left + pageXOffset) + target.offsetWidth / 2 + 'px'
+		}
+
+		let size = {
+			width: target.offsetWidth + 'px',
+			height: 'auto'
+		}
+
+		let action = target == this.box ? 'show' : 'hide';
+		this.animateDialog(action, targetCenter, size);
+	}
+
+	animateDialog(action, pos, size) {
+		this.dialog.classList.remove('show', 'hide');
+		this.dialog.classList.add('animate', action);
+
+		this.dialog.style.top = pos.top;
+		this.dialog.style.left = pos.left;
+		this.dialog.style.width = size.width;
+		this.dialog.style.height = size.height;
+
+
+		if (window.innerWidth < 600) {
+			this.dialog.style.width = '100%';
+		}
+	}
+
+	showHiddenItems() {
+		var hiddenItems = this.list.querySelectorAll('.todo-item.hidden');
+		for (let i = 0; i < hiddenItems.length; i++) {
+			hiddenItems[i].classList.remove('hidden');
+		}
+		this.fixBoxBodyHeight();
+	}
+
+	hideOutOfMaxItems() {
+		if (this.itemsArray.length > this.options.previewMaxCount) {
+			this.itemsArray.forEach((item, i) => {
+				if (i >= this.options.previewMaxCount) {
+					item.element.classList.add('hidden');
+				}
+			});
+			this.addItem.classList.add('hidden');
+		}
+		this.fixBoxBodyHeight();
+	}
+
+	fixBoxBodyHeight() {
+		let height = this.list.offsetHeight;
+		if (this.itemsArray.length > this.options.previewMaxCount) {
+			height = 0;
+			this.itemsArray.forEach((item, i) => {
+				if (!item.element.classList.contains('hidden')) {
+					height += item.element.offsetHeight;
+				}
+			});
+			height += this.boxBody.querySelector('.more').offsetHeight;
+		}
+		this.boxBody.style.height = height + 'px';
+		this.boxBody.style.maxHeight = window.innerHeight - 300 + 'px';
+
+		return height;
+	}
+
+	destroyDialog(event) {
+		// 0.375 -- the longest time in CSS transitions animation
+		if (event.srcElement == this.dialog && event.elapsedTime == 0.375) {
+			this.dialog.removeEventListener('transitionend', this.destroyDialog.bind(this));
+
+			this.clone.remove();
+			this.parent.appendChild(this.box);
+			this.dialog.remove();
+			this.active = false;
+		}
+	}
+
+	isDialog(elem) {
+		if (elem.closest('.dialog') && elem.closest('.dialog').contains(this.dialog)) {
+			return true;
+		}
+		if (elem.closest('.todo-item--icon.remove')) {
+			return true;
+		}
+		return false;
+	}
+
+	// Events
+
+	initEvents() {
+
+		this.box.addEventListener('click', this.onPreviewBoxClick.bind(this));
+		document.body.addEventListener('click', this.onDocumentClick.bind(this));
+		window.addEventListener('resize', this.onWindowResize.bind(this));
+
+		this.list.addEventListener('todo.item.remove', this.onRemoveTodo.bind(this));
+		this.list.addEventListener('todo.item.removed', this.onRemovedTodo.bind(this));
+		this.titleElement.addEventListener('input', this.onTitleInput.bind(this));
+
+		this.addItem.addEventListener('click', () => { this.addInput.focus(); });
+		this.addInput.addEventListener('focus', this.onAddBoxFocus.bind(this));
+		this.addInput.addEventListener('blur', this.onAddBoxBlur.bind(this));
+		this.addInput.addEventListener('input', this.onAddTodo.bind(this));
+		this.clearTool.addEventListener('click', this.onListClear.bind(this));
+		this.removeTool.addEventListener('click', this.onListRemove.bind(this));
+
+		this.clearTool.addEventListener('click', this.onListClear.bind(this));
+		this.removeTool.addEventListener('click', this.onListRemove.bind(this));
+	}
+
+	onPreviewBoxClick(event) {
+		if (!this.active &&
+			event.target != this.clearTool &&
+			event.target != this.removeTool &&
+			!event.target.closest('.todo-item--complete')) {
+			this.showDialog();
+		}
+	}
+
+	onDocumentClick(event) {
+		if (this.active && !this.isDialog(event.target)) {
+			this.hideDialog();
+		}
+	}
+
+	onWindowResize(event) {
+		if (this.active) {
+			let pos = {
+				top: window.pageYOffset + document.documentElement.clientHeight / 2 + 'px',
+				left: '50%'
+			}
+			let size = {
+				width: '600px',
+				height: 'auto',
+				bodyHeight: this.list.offsetHeight + 'px'
+			}
+			this.animateDialog('show', pos, size);
+			this.fixBoxBodyHeight();
 		}
 	}
 
@@ -720,26 +859,33 @@ class TodoList {
 		let item = event.detail.item;
 		let index = this.itemsArray.indexOf(item);
 		this.itemsArray.splice(index, 1);
+
+		if (this.itemsArray.length == this.options.previewMaxCount) {
+			this.boxBody.querySelector('.more').remove();
+		}
+	}
+
+	onRemovedTodo(event) {
+		this.fixBoxBodyHeight();
 	}
 
 	onAddBoxFocus(event) {
-		this.addElement.classList.add('active');
+		this.addItem.classList.add('active');
 	}
 
 	onAddBoxBlur(event) {
-		this.addElement.classList.remove('active');
+		this.addItem.classList.remove('active');
 	}
 
 	onAddTodo(event) {
-		event.preventDefault();
-
-		let value = this.addBox.innerHTML;
+		let value = this.addInput.innerHTML;
 
 		if (value) {
-			let item = new __WEBPACK_IMPORTED_MODULE_0__todoItem_js__["a" /* TodoItem */](value, false, this.options.item, this.list);
+			let item = new __WEBPACK_IMPORTED_MODULE_0__todoItem_js__["a" /* TodoItem */](value, false, this.options.item);
 			this.add(item);
-			this.addBox.innerHTML = '';
-			this.addElement && this.addElement.classList.remove('active');
+
+			this.addInput.innerHTML = '';
+			this.addItem.classList.remove('active');
 			item.textBox.focus();
 
 			item && this.options.onAddTodo && this.options.onAddTodo.call(this, item);
@@ -747,7 +893,7 @@ class TodoList {
 	}
 
 	onTitleInput(event) {
-		this.title = this.titleBox.innerHTML;
+		this.title = this.titleElement.innerHTML;
 	}
 
 	onListClear(event) {
@@ -767,18 +913,7 @@ class TodoList {
 		});
 		this.list.dispatchEvent(listRemove);
 
-		this.todoBox.remove();
-	}
-
-	onListMove(direction, event) {
-		let moveTodoList = new CustomEvent("todo.list.move", {
-			bubbles: true,
-			detail: {
-				direction: direction,
-				list: this
-			}
-		});
-		this.list.dispatchEvent(moveTodoList);
+		this.box.remove();
 	}
 
 	placeCaretAtEnd(element) {
@@ -811,7 +946,7 @@ const TodoItemDefaults = {
 	editable: true,
 	removable: true,
 	singleLine: true,
-	removeBtnText: '<span class="fa fa-times-circle">&times;</span>'
+	removeBtnText: '<i class="material-icons">highlight_off</i>'
 };
 /* unused harmony export TodoItemDefaults */
 
@@ -873,8 +1008,9 @@ class TodoItem {
 		this.element.classList.add('todo-item');
 
 		let inner = `
-			<label class="todo-item--complete">
+			<label class="todo-item--complete todo-item--icon">
 				<input type="checkbox" tabindex="-1">
+				<i class="material-icons"></i>
 			</label>
 			<div class="todo-item--text" contenteditable="${this.options.editable}"></div>
 		`;
@@ -922,7 +1058,14 @@ class TodoItem {
 		});
 		this.element.dispatchEvent(itemRemove);
 
-		this.element.remove();
+		let parent = this.element.parentElement
+		this.element.remove();this.element.parentElement
+
+		var itemRemoved = new CustomEvent("todo.item.removed", {
+			bubbles: true,
+			detail: { item: this }
+		});
+		parent.dispatchEvent(itemRemoved);
 	}
 
 	onTextBoxFocus(event) {
